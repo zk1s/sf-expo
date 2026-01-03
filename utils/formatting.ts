@@ -1,16 +1,16 @@
 import { Comment } from '@/types';
+import { parse } from 'node-html-parser';
 
 export const formatReply = (comment: Comment): string => {
-    let content = comment.contentHtml;
+    const root = parse(comment.contentHtml);
 
-    content = content.replace(/<div class=['"]quote['"]>[\s\S]*?<\/div>/gi, "");
-    content = content.replace(/<br\s*\/?>/gi, "\n");
-    content = content.replace(/<[^>]+>/g, "");
-    content = content.replace(/&nbsp;/g, " ")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&amp;/g, "&")
-        .replace(/&quot;/g, '"');
+    root.querySelectorAll('.quote').forEach(el => el.remove());
+
+    root.querySelectorAll('br').forEach(br => {
+        br.replaceWith('\n');
+    });
+
+    let content = root.text;
 
     content = content.trim();
 
