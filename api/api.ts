@@ -67,6 +67,15 @@ export const getComments = async (pageNo: number = 1): Promise<Comment[]> => {
 
         const isHighlighted = el.classList.contains('highlighted');
 
+        const canVote = !el.classList.contains('novote');
+
+        const upvoteBtn = el.querySelector('.upvote');
+        const downvoteBtn = el.querySelector('.downvote');
+
+        let hasVoted: 'up' | 'down' | null = null;
+        if (upvoteBtn?.classList.contains('selected-vote')) hasVoted = 'up';
+        if (downvoteBtn?.classList.contains('selected-vote')) hasVoted = 'down';
+
         comments.push({
             id,
             author,
@@ -79,6 +88,8 @@ export const getComments = async (pageNo: number = 1): Promise<Comment[]> => {
             upvotes,
             isHighlighted,
             isLiked: false,
+            canVote,
+            hasVoted
         });
     }
 
@@ -278,4 +289,35 @@ export const uploadToCatbox = async (uri: string): Promise<string | null> => {
         console.error('Error uploading to catbox:', e);
         return null;
     }
+};
+
+export const voteComment = async (id: string, direction: 'up' | 'down'): Promise<string> => {
+    const url = `${BASE_URL}/index.php`;
+    const pageResponse = await fetchWithCookie(url);
+    const pageHtml = await pageResponse.text();
+    const root = parse(pageHtml);
+
+    const tokenInput = root.querySelector('input[name="token"]');
+    const token = tokenInput?.getAttribute('value');
+
+    if (!token) {
+        return 'auth_error';
+    }
+
+    const formData = new URLSearchParams();
+    formData.append('action', 'voteComment');
+    formData.append('id', id);
+    formData.append('direction', direction);
+    formData.append('token', token);
+
+    const response = await fetchWithCookie(`${BASE_URL}/include/ajax.php`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+    });
+
+    const result = await response.text();
+    return result;
 };

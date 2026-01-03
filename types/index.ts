@@ -11,6 +11,8 @@ export interface Comment {
     isHighlighted: boolean;
     isLiked: boolean;
     replyTo?: string;
+    hasVoted?: 'up' | 'down' | null;
+    canVote?: boolean;
 }
 
 export interface User {

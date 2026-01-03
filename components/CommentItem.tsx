@@ -1,3 +1,4 @@
+import { voteComment } from '@/api/api';
 import { Comment } from '@/types';
 import { useRouter } from 'expo-router';
 import React, { memo } from 'react';
@@ -15,6 +16,37 @@ const CommentItem = ({ comment, onReply, customFooter }: Props) => {
     const theme = useTheme();
     const router = useRouter();
     const [visible, setVisible] = React.useState(false);
+
+    const [voteStatus, setVoteStatus] = React.useState<'up' | 'down' | null>(comment.hasVoted || null);
+    const [score, setScore] = React.useState(comment.upvotes);
+    const [isVoting, setIsVoting] = React.useState(false);
+
+    React.useEffect(() => {
+        setVoteStatus(comment.hasVoted || null);
+        setScore(comment.upvotes);
+    }, [comment.hasVoted, comment.upvotes]);
+
+    const handleVote = async (direction: 'up' | 'down') => {
+        if (isVoting) return;
+        if (voteStatus === direction) {
+            return;
+        }
+
+        setIsVoting(true);
+        const result = await voteComment(comment.id, direction);
+        setIsVoting(false);
+
+        if (result === 'ok') {
+            setVoteStatus(direction);
+            setScore(prev => prev + (direction === 'up' ? 1 : -1));
+        } else if (result === 'err0') {
+            alert('Már szavaztál erre a kommentre!');
+        } else if (result === 'err1') {
+            alert('Erre a kommentre nem szavazhatsz.');
+        } else {
+            alert('Hiba történt a szavazás során.');
+        }
+    };
 
     const getAuthorColor = () => {
         if (!comment.authorClasses) return theme.colors.onSurface;
@@ -101,7 +133,7 @@ const CommentItem = ({ comment, onReply, customFooter }: Props) => {
                         <View style={[styles.voteBadge, { backgroundColor: theme.colors.secondaryContainer }]}>
                             <Icon source="thumb-up" size={16} color={theme.colors.onSecondaryContainer} />
                             <Text variant="labelMedium" style={[styles.voteText, { color: theme.colors.onSecondaryContainer }]}>
-                                {comment.upvotes}
+                                {score}
                             </Text>
                         </View>
                     </View>
@@ -115,16 +147,22 @@ const CommentItem = ({ comment, onReply, customFooter }: Props) => {
                     customFooter
                 ) : (
                     <Card.Actions style={styles.cardActions}>
-                        <IconButton
-                            icon="thumb-up-outline"
-                            size={20}
-                            onPress={() => console.log('Upvote')}
-                        />
-                        <IconButton
-                            icon="thumb-down-outline"
-                            size={20}
-                            onPress={() => console.log('Downvote')}
-                        />
+                        {comment.canVote && (
+                            <IconButton
+                                icon={voteStatus === 'up' ? "thumb-up" : "thumb-up-outline"}
+                                size={20}
+                                iconColor={voteStatus === 'up' ? theme.colors.primary : undefined}
+                                onPress={() => handleVote('up')}
+                            />
+                        )}
+                        {comment.canVote && (
+                            <IconButton
+                                icon={voteStatus === 'down' ? "thumb-down" : "thumb-down-outline"}
+                                size={20}
+                                iconColor={voteStatus === 'down' ? theme.colors.error : undefined}
+                                onPress={() => handleVote('down')}
+                            />
+                        )}
                         <IconButton
                             icon="reply"
                             size={20}
