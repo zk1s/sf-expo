@@ -3,6 +3,7 @@ export interface Comment {
     author: string;
     authorRank?: string;
     authorPoints?: string;
+    authorClasses?: string;
     date: string;
     contentHtml: string;
     avatarUrl: string;

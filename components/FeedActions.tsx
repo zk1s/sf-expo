@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     container: {
         position: 'absolute',
         right: 16,
-        bottom: 80, // Adjust based on pagination height
+        bottom: 80,
         alignItems: 'center',
     },
     scrollGroup: {

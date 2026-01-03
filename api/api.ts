@@ -26,6 +26,20 @@ export const getComments = async (pageNo: number = 1): Promise<Comment[]> => {
 
         const authorEl = el.querySelector('.header strong');
         const author = authorEl?.text.trim() || 'Unknown';
+        const headerSpan = authorEl?.parentNode;
+        const title = headerSpan?.getAttribute('title') || '';
+
+        let authorRank = '';
+        let authorPoints = '';
+        if (title) {
+            const parts = title.split(' ');
+            if (parts.length >= 2) {
+                authorPoints = parts[parts.length - 2];
+                authorRank = parts.slice(0, parts.length - 2).join(' ');
+            }
+        }
+
+        const authorClasses = authorEl?.getAttribute('class') || '';
 
         const dateEl = el.querySelector('.header .date');
         const date = dateEl?.text.trim() || '';
@@ -56,6 +70,9 @@ export const getComments = async (pageNo: number = 1): Promise<Comment[]> => {
         comments.push({
             id,
             author,
+            authorRank,
+            authorPoints,
+            authorClasses,
             date,
             contentHtml,
             avatarUrl,
