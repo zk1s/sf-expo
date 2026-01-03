@@ -247,3 +247,35 @@ export const updateUserProfile = async (signature: string, imageUri?: string): P
 
     return true;
 };
+
+export const uploadToCatbox = async (uri: string): Promise<string | null> => {
+    try {
+        const formData = new FormData();
+        formData.append('reqtype', 'fileupload');
+
+        const filename = uri.split('/').pop() || 'upload.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+        formData.append('fileToUpload', {
+            uri,
+            name: filename,
+            type,
+        } as any);
+
+        const response = await fetch('https://catbox.moe/user/api.php', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('Catbox upload failed');
+        }
+
+        const url = await response.text();
+        return url.trim();
+    } catch (e) {
+        console.error('Error uploading to catbox:', e);
+        return null;
+    }
+};
