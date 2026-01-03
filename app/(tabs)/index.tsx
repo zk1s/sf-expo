@@ -73,8 +73,9 @@ export default function FeedScreen() {
       const freshComments = latestComments.slice(lastKnownIndex + 1);
 
       if (freshComments.length > 0) {
-        setNewComments(prev => [...prev, ...freshComments]);
+        setNewComments(freshComments);
         setShowNewCommentsBanner(true);
+        lastCommentIdRef.current = freshComments[freshComments.length - 1].id;
       }
     } catch (e) {
       console.error('Error checking for new comments:', e);
