@@ -1,5 +1,6 @@
 import { getUserProfile, updateUserProfile, UserProfile } from '@/api/api';
 import { useAuth } from '@/context/AuthContext';
+import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
@@ -85,9 +86,20 @@ export default function ProfileScreen() {
 
     const copyAuthCode = () => {
         if (profile?.authCode) {
-            Alert.alert('Hitelesítő kód', profile.authCode, [
-                { text: 'OK' }
-            ]);
+            Alert.alert(
+                'Hitelesítő kód',
+                profile.authCode,
+                [
+                    {
+                        text: 'Másolás',
+                        onPress: async () => {
+                            await Clipboard.setStringAsync(profile.authCode);
+                            Alert.alert('Siker', 'Kód a vágólapra másolva!');
+                        }
+                    },
+                    { text: 'Bezárás', style: 'cancel' }
+                ]
+            );
         }
     };
 
@@ -197,10 +209,7 @@ export default function ProfileScreen() {
                         <Text variant="bodySmall" style={styles.hint}>
                             Másold ki és mentsd el. Később ezzel a kóddal tudod igazolni az adminisztrátorok számára, hogy az account hozzád tartozik.
                         </Text>
-                        <Surface style={styles.authCodeBox} elevation={1}>
-                            <Text variant="bodyMedium" selectable>{profile?.authCode}</Text>
-                        </Surface>
-                        <Button mode="outlined" onPress={copyAuthCode} style={styles.button}>
+                        <Button mode="contained" onPress={copyAuthCode} style={styles.button}>
                             Kód megtekintése
                         </Button>
                     </Card.Content>
