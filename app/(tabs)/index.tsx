@@ -6,7 +6,7 @@ import PostDialog from '@/components/PostDialog';
 import { useAuth } from '@/context/AuthContext';
 import { Comment } from '@/types';
 import { formatReply } from '@/utils/formatting';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, useTheme } from 'react-native-paper';
@@ -25,12 +25,19 @@ export default function FeedScreen() {
   const theme = useTheme();
   const { user } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ page?: string; commentId?: string }>();
 
-
-  const loadPage = useCallback(async (page: number, isRefresh = false) => {
+  const loadPage = useCallback(async (page: number, isRefresh = false, highlightId?: string) => {
     try {
       if (!isRefresh) setLoading(true);
       const newComments = await getComments(page);
+
+      if (highlightId) {
+        newComments.forEach(c => {
+          if (c.id === highlightId) c.isHighlighted = true;
+        });
+      }
+
       setComments(newComments);
       setCurrentPage(page);
     } catch (e) {
@@ -46,17 +53,31 @@ export default function FeedScreen() {
       setLoading(true);
       const lastPage = await getLastPageNumber();
       setTotalPages(lastPage);
-      setCurrentPage(lastPage);
-      await loadPage(lastPage);
+
+      const targetPage = params.page ? parseInt(params.page, 10) : lastPage;
+      setCurrentPage(targetPage);
+      await loadPage(targetPage, false, params.commentId);
+
     } catch (e) {
       console.error(e);
       setLoading(false);
     }
-  }, [loadPage]);
+  }, [loadPage, params.page, params.commentId, router]);
 
   useEffect(() => {
     init();
   }, [init]);
+
+  useEffect(() => {
+    if (comments.length > 0 && params.commentId && !loading) {
+      const index = [...comments].reverse().findIndex(c => c.id === params.commentId);
+      if (index !== -1) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
+        }, 300);
+      }
+    }
+  }, [comments, params.commentId, loading]);
 
   const onRefresh = async () => {
     setRefreshing(true);

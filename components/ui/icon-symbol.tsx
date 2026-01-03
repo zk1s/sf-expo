@@ -13,6 +13,7 @@ const MAPPING = {
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   'person.fill': 'person',
+  'magnifyingglass': 'search',
 } as IconMapping;
 
 export function IconSymbol({

@@ -1,16 +1,19 @@
 import { Comment } from '@/types';
+import { useRouter } from 'expo-router';
 import React, { memo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Avatar, Button, Card, Chip, Dialog, IconButton, Portal, Text, useTheme } from 'react-native-paper';
+import { Avatar, Button, Card, Dialog, Icon, IconButton, Portal, Text, useTheme } from 'react-native-paper';
 import HTMLContent from './HTMLContent';
 
 interface Props {
     comment: Comment;
     onReply?: (comment: Comment) => void;
+    customFooter?: React.ReactNode;
 }
 
-const CommentItem = ({ comment, onReply }: Props) => {
+const CommentItem = ({ comment, onReply, customFooter }: Props) => {
     const theme = useTheme();
+    const router = useRouter();
     const [visible, setVisible] = React.useState(false);
 
     const getAuthorColor = () => {
@@ -26,6 +29,14 @@ const CommentItem = ({ comment, onReply }: Props) => {
 
     const showAuthorDetails = () => setVisible(true);
     const hideAuthorDetails = () => setVisible(false);
+
+    const handleSearchUser = () => {
+        hideAuthorDetails();
+        router.push({
+            pathname: '/search',
+            params: { user: comment.author }
+        });
+    };
 
     const LeftContent = (props: any) => {
         const size = props.size || 40;
@@ -53,6 +64,9 @@ const CommentItem = ({ comment, onReply }: Props) => {
                         </View>
                     </Dialog.Content>
                     <Dialog.Actions>
+                        <Button onPress={handleSearchUser} mode="text" icon="magnify" style={{ marginRight: 'auto' }}>
+                            Posztjai
+                        </Button>
                         <Button onPress={hideAuthorDetails} mode="contained-tonal">Bezárás</Button>
                     </Dialog.Actions>
                 </Dialog>
@@ -84,9 +98,12 @@ const CommentItem = ({ comment, onReply }: Props) => {
                     </View>
 
                     <View style={styles.headerRight}>
-                        <Chip icon="thumb-up" compact style={styles.chip} textStyle={styles.chipText}>
-                            {comment.upvotes}
-                        </Chip>
+                        <View style={[styles.voteBadge, { backgroundColor: theme.colors.secondaryContainer }]}>
+                            <Icon source="thumb-up" size={16} color={theme.colors.onSecondaryContainer} />
+                            <Text variant="labelMedium" style={[styles.voteText, { color: theme.colors.onSecondaryContainer }]}>
+                                {comment.upvotes}
+                            </Text>
+                        </View>
                     </View>
                 </View>
 
@@ -94,23 +111,27 @@ const CommentItem = ({ comment, onReply }: Props) => {
                     <HTMLContent html={comment.contentHtml} />
                 </Card.Content>
 
-                <Card.Actions style={styles.cardActions}>
-                    <IconButton
-                        icon="thumb-up-outline"
-                        size={20}
-                        onPress={() => console.log('Upvote')}
-                    />
-                    <IconButton
-                        icon="thumb-down-outline"
-                        size={20}
-                        onPress={() => console.log('Downvote')}
-                    />
-                    <IconButton
-                        icon="reply"
-                        size={20}
-                        onPress={() => onReply && onReply(comment)}
-                    />
-                </Card.Actions>
+                {customFooter ? (
+                    customFooter
+                ) : (
+                    <Card.Actions style={styles.cardActions}>
+                        <IconButton
+                            icon="thumb-up-outline"
+                            size={20}
+                            onPress={() => console.log('Upvote')}
+                        />
+                        <IconButton
+                            icon="thumb-down-outline"
+                            size={20}
+                            onPress={() => console.log('Downvote')}
+                        />
+                        <IconButton
+                            icon="reply"
+                            size={20}
+                            onPress={() => onReply && onReply(comment)}
+                        />
+                    </Card.Actions>
+                )}
             </Card>
         </>
     );
@@ -158,6 +179,18 @@ const styles = StyleSheet.create({
     },
     headerRight: {
         marginLeft: 8,
+    },
+    voteBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+    },
+    voteText: {
+        marginLeft: 4,
+        fontWeight: 'bold',
     },
     cardContent: {
         paddingTop: 0,

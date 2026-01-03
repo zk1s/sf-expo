@@ -24,3 +24,23 @@ export interface AuthState {
     login: (username: string, password: string) => Promise<void>;
     logout: () => void;
 }
+
+export interface SearchParams {
+    user?: string;
+    comment?: string;
+    is_reg?: string;
+    points?: string;
+    fromdate?: string;
+    todate?: string;
+}
+
+export interface SearchResult {
+    id: string;
+    author: string;
+    isRegistered: boolean;
+    points: number;
+    date: string;
+    contentHtml: string;
+    pageNo: number;
+    link: string;
+}
