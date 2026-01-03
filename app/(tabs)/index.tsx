@@ -8,8 +8,8 @@ import { Comment } from '@/types';
 import { formatReply } from '@/utils/formatting';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, useTheme } from 'react-native-paper';
+import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Icon, Text, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FeedScreen() {
@@ -21,6 +21,11 @@ export default function FeedScreen() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const flatListRef = useRef<FlatList>(null);
+
+  const [newComments, setNewComments] = useState<Comment[]>([]);
+  const [showNewCommentsBanner, setShowNewCommentsBanner] = useState(false);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastCommentIdRef = useRef<string>('');
 
   const theme = useTheme();
   const { user } = useAuth();
@@ -40,6 +45,10 @@ export default function FeedScreen() {
 
       setComments(newComments);
       setCurrentPage(page);
+
+      if (newComments.length > 0) {
+        lastCommentIdRef.current = newComments[newComments.length - 1].id;
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -47,6 +56,50 @@ export default function FeedScreen() {
       setRefreshing(false);
     }
   }, []);
+
+  const checkForNewComments = useCallback(async () => {
+    if (currentPage !== totalPages || loading || refreshing) return;
+
+    try {
+      const latestComments = await getComments(currentPage);
+      const lastKnownId = lastCommentIdRef.current;
+
+      if (!lastKnownId || latestComments.length === 0) return;
+
+      const lastKnownIndex = latestComments.findIndex(c => c.id === lastKnownId);
+
+      if (lastKnownIndex === -1 || lastKnownIndex === latestComments.length - 1) return;
+
+      const freshComments = latestComments.slice(lastKnownIndex + 1);
+
+      if (freshComments.length > 0) {
+        setNewComments(prev => [...prev, ...freshComments]);
+        setShowNewCommentsBanner(true);
+      }
+    } catch (e) {
+      console.error('Error checking for new comments:', e);
+    }
+  }, [currentPage, totalPages, loading, refreshing]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const last = await getLastPageNumber();
+      setTotalPages(last);
+      await loadPage(currentPage, true);
+      setNewComments([]);
+      setShowNewCommentsBanner(false);
+    } catch (e) {
+      console.error(e);
+      setRefreshing(false);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    loadPage(page);
+    setNewComments([]);
+    setShowNewCommentsBanner(false);
+  };
 
   const init = useCallback(async () => {
     try {
@@ -62,7 +115,7 @@ export default function FeedScreen() {
       console.error(e);
       setLoading(false);
     }
-  }, [loadPage, params.page, params.commentId, router]);
+  }, [loadPage, params.page, params.commentId]);
 
   useEffect(() => {
     init();
@@ -79,20 +132,26 @@ export default function FeedScreen() {
     }
   }, [comments, params.commentId, loading]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      const last = await getLastPageNumber();
-      setTotalPages(last);
-      await loadPage(currentPage, true);
-    } catch (e) {
-      console.error(e);
-      setRefreshing(false);
+  useEffect(() => {
+    if (currentPage === totalPages && !loading) {
+      pollingIntervalRef.current = setInterval(checkForNewComments, 10000);
     }
-  };
 
-  const handlePageChange = (page: number) => {
-    loadPage(page);
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [currentPage, totalPages, loading, checkForNewComments]);
+
+  const showNewCommentsHandler = () => {
+    setComments(prev => [...prev, ...newComments]);
+    if (newComments.length > 0) {
+      lastCommentIdRef.current = newComments[newComments.length - 1].id;
+    }
+    setNewComments([]);
+    setShowNewCommentsBanner(false);
   };
 
 
@@ -164,6 +223,20 @@ export default function FeedScreen() {
         inverted
       />
 
+      {showNewCommentsBanner && newComments.length > 0 && (
+        <TouchableOpacity
+          style={[styles.newCommentsBanner, { backgroundColor: theme.colors.primaryContainer }]}
+          onPress={showNewCommentsHandler}
+          activeOpacity={0.8}
+        >
+          <Icon source="arrow-down" size={20} color={theme.colors.onPrimaryContainer} />
+          <Text variant="labelLarge" style={[styles.bannerText, { color: theme.colors.onPrimaryContainer }]}>
+            {newComments.length} új komment érkezett
+          </Text>
+          <Icon source="arrow-down" size={20} color={theme.colors.onPrimaryContainer} />
+        </TouchableOpacity>
+      )}
+
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
@@ -196,5 +269,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  newCommentsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginHorizontal: 10,
+    marginBottom: 8,
+    borderRadius: 8,
+    gap: 8,
+  },
+  bannerText: {
+    fontWeight: 'bold',
   },
 });
