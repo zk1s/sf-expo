@@ -1,1 +1,1 @@
-[![Legújabb Androidos verzió letöltés](https://img.shields.io/badge/Legújabb%20Androidos%20verzió%20letöltés-brightgreen?style=for-the-badge)](https://github.com/zk1s/sf-expo/releases/download/1.0.1/sodiforum_1.0.1.apk)
+[![Legújabb Androidos verzió letöltés](https://img.shields.io/badge/Legújabb%20Androidos%20verzió%20letöltés-brightgreen?style=for-the-badge)](https://github.com/zk1s/sf-expo/releases/download/1.0.2/sodiforum_1.0.2.apk)
