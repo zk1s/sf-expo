@@ -1,50 +1,44 @@
 {
-    "expo": {
-        "name": "SodiForum",
-        "slug": "sodiforumandroid",
-        "version": "1.0.1",
-        "orientation": "portrait",
-        "icon": "./assets/images/icon.png",
-        "userInterfaceStyle": "automatic",
-        "newArchEnabled": true,
-        "ios": {
-            "supportsTablet": true,
-            "bundleIdentifier": "hu.zk1s.sodiforum"
-        },
-        "android": {
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/images/android-icon-foreground.png",
-                "backgroundColor": "#ffffff"
-            },
-            "package": "hu.zk1s.sodiforum"
-        },
-        "plugins": [
-            "expo-router",
-            [
-                "expo-splash-screen",
-                {
-                    "image": "./assets/images/splash-icon.png",
-                    "imageWidth": 200,
-                    "resizeMode": "contain",
-                    "backgroundColor": "#ffffff"
-                }
-            ]
-        ],
-        "experiments": {
-            "typedRoutes": true
-        },
-        "extra": {
-            "router": {},
-            "eas": {
-                "projectId": "810d7fee-909f-49e0-aed7-1d5df41b4f1e"
-            }
-        },
-        "owner": "zk1s",
-        "runtimeVersion": {
-            "policy": "appVersion"
-        },
-        "updates": {
-            "url": "https://u.expo.dev/810d7fee-909f-49e0-aed7-1d5df41b4f1e"
+  "expo": {
+    "name": "SodiForum",
+    "slug": "sodiforumandroid",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "hu.zk1s.sodiforum"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "hu.zk1s.sodiforum"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
         }
-    }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "810d7fee-909f-49e0-aed7-1d5df41b4f1e"
+      }
+    },
+    "owner": "zk1s"
+  }
 }
